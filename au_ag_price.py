@@ -43,6 +43,7 @@ def get_price():
 
 
 def to_db(time, xauPrice, xagPrice):
+    conn = None
     try:
         conn = pymysql.connect(host='localhost',
                                user='root',
@@ -50,7 +51,7 @@ def to_db(time, xauPrice, xagPrice):
                                db='test',
                                charset='utf8',
                                cursorclass=pymysql.cursors.DictCursor)
-
+        Logger.info('连接数据库成功。') 
         with conn.cursor() as c:
             insert_sql = 'insert ignore into au_ag_price values(%s,%s,%s)'
             c.execute(insert_sql, (time, round(xauPrice, 2), round(xagPrice, 2)))
@@ -59,7 +60,8 @@ def to_db(time, xauPrice, xagPrice):
     except Exception as e:
         Logger.error('写数据库出错：' + str(e)) 
     finally:
-        conn.close()
+        if conn:
+            conn.close()
         Logger.info('关闭数据库。') 
 
 
