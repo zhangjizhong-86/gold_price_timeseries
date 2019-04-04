@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[6]:
+# In[20]:
 
 
 import requests
@@ -12,9 +12,10 @@ from datetime import datetime
 import logging
 from logging.handlers import RotatingFileHandler
 from logging.config import fileConfig
+import pytz
 
 
-# In[2]:
+# In[21]:
 
 
 url = 'https://data-asg.goldprice.org/dbXRates/USD,CNY'
@@ -27,25 +28,26 @@ LOG_MAX_SIZE = 1024*1024 # 1MB
 LOG_MAX_FILES = 1 # 1 File only
 
 
-# In[3]:
+# In[22]:
 
 
 def get_price():
     response = requests.get(url)
     dict_response = json.loads(response.text)
-    time = datetime.fromtimestamp(dict_response['tsj'] / 1000).strftime('%Y-%m-%d %H:%M:%S')
+    time = datetime.fromtimestamp(dict_response['tsj'] / 1000, pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d %H:%M:%S')
     xauPrice = dict_response['items'][0]['xauPrice'] / convert_denom
     xagPrice = dict_response['items'][0]['xagPrice'] / convert_denom
     return time, xauPrice, xagPrice
 
 
-# In[13]:
+# In[23]:
 
 
 def to_db(time, xauPrice, xagPrice):
     conn = None
     try:
         conn = pymysql.connect(host='localhost',
+                               port=3306,
                                user='root',
                                password='mysql',
                                db='test',
@@ -65,7 +67,7 @@ def to_db(time, xauPrice, xagPrice):
         Logger.info('关闭数据库。') 
 
 
-# In[15]:
+# In[24]:
 
 
 if __name__ == '__main__':
